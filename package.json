@@ -9,7 +9,8 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "make:mac": "electron-forge make --platform=darwin",
-    "make:win": "electron-builder --win --x64"
+    "make:win": "electron-builder --win --x64",
+    "ci:win": "electron-forge package --platform=win32 --arch=x64 && electron-builder --win --x64"
   },
   "build": {
     "appId": "kspasov.messenger",
