@@ -11,6 +11,16 @@ function setDockBadge(countStr) {
   app.dock.setBadge(!n ? "" : String(n));
 }
 
+function setWindowsTaskbarFlash(countStr) {
+  if (process.platform !== "win32") return;
+  if (!win) return;
+
+  const n = Number(countStr) || 0;
+
+  // Flash taskbar when there are unread messages
+  win.flashFrame(n > 0);
+}
+
 function createWindow() {
   win = new BrowserWindow({
     width: 1200,
@@ -64,7 +74,11 @@ function createWindow() {
 }
 
 ipcMain.on("unread-count", (event, countStr) => {
+  // macOS
   setDockBadge(countStr);
+
+  // Windows
+  setWindowsTaskbarFlash(countStr);
 });
 
 app.whenReady().then(createWindow);
