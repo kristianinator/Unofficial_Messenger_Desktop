@@ -63,6 +63,6 @@ If you like this project and want to support development:
 
 - GitHub Sponsors: https://github.com/sponsors/kristianinator
 - PayPal: https://www.paypal.me/Wirtty
-- Revolut: @kristipmlt
+- Revolut: @kristipmlt https://revolut.me/kristiplmt
 
 Thank you! 🙏
