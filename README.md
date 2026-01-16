@@ -57,3 +57,12 @@ MIT License
 ## Trademarks
 “Messenger”, “Facebook”, and related marks are trademarks of Meta Platforms, Inc.
 This project is not endorsed by Meta.
+
+## ❤️ Support / Donations
+If you like this project and want to support development:
+
+- GitHub Sponsors: https://github.com/sponsors/kristianinator
+- PayPal: https://www.paypal.me/Wirtty
+- Revolut: @kristipmlt
+
+Thank you! 🙏
