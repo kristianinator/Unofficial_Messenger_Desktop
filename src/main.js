@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, shell, Menu } = require("electron");
 const path = require("path");
 
 let win;
@@ -20,14 +20,47 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-
-      // ✅ IMPORTANT: persistent session
-      partition: "persist:messenger"
-    }
+      partition: "persist:messenger",
+    },
   });
 
   win.setMenuBarVisibility(false);
   win.loadURL("https://www.messenger.com");
+
+  // ✅ 1) Open new-window links in default browser
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: "deny" };
+  });
+
+  // ✅ 2) Open external navigation in default browser
+  win.webContents.on("will-navigate", (event, url) => {
+    const allowedDomains = [
+      "https://www.messenger.com",
+      "https://messenger.com",
+      "https://www.facebook.com",
+      "https://facebook.com",
+    ];
+
+    const isAllowed = allowedDomains.some((d) => url.startsWith(d));
+
+    if (!isAllowed) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
+
+  // ✅ Right click context menu (copy / paste)
+  win.webContents.on("context-menu", (event, params) => {
+    const menu = Menu.buildFromTemplate([
+      { role: "cut", enabled: params.editFlags.canCut },
+      { role: "copy", enabled: params.editFlags.canCopy },
+      { role: "paste", enabled: params.editFlags.canPaste },
+      { role: "selectAll" },
+    ]);
+
+    menu.popup({ window: win });
+  });
 }
 
 ipcMain.on("unread-count", (event, countStr) => {
