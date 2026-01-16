@@ -8,9 +8,8 @@
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "publish": "electron-forge publish",
-    "lint": "echo \"No linting configured\"",
-    "build:win": "electron-builder --win --x64"
+    "make:mac": "electron-forge make --platform=darwin",
+    "make:win": "electron-builder --win --x64"
   },
   "build": {
     "appId": "kspasov.messenger",
