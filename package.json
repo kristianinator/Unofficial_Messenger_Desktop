@@ -1,8 +1,8 @@
 {
-  "name": "messenger",
-  "productName": "Messenger",
+  "name": "unofficial-messenger-desktop",
+  "productName": "Unofficial Messenger Desktop",
   "version": "1.0.0",
-  "description": "Messenger desktop app",
+  "description": "Unofficial desktop wrapper for messenger.com",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
