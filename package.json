@@ -14,7 +14,7 @@
   },
   "build": {
     "appId": "kspasov.messenger",
-    "productName": "Messenger",
+    "productName": "Unofficial Messenger Desktop",
     "files": [
       "**/*"
     ],
