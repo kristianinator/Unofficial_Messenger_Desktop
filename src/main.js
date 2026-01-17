@@ -1,6 +1,5 @@
 const { app, BrowserWindow, ipcMain, shell, Menu, nativeImage } = require("electron");
 const path = require("path");
-const { createCanvas } = require("canvas");
 
 let win = null;
 let lastUnread = -1;
@@ -22,6 +21,9 @@ function setDockBadge(countStr) {
 // Windows: generate overlay badge icon
 // ----------------------------
 function createBadgeIcon(count) {
+  if (process.platform !== "win32") return null;
+
+  const { createCanvas } = require("canvas");
   const size = 32; // ✅ overlay icon size must be small
   const canvas = createCanvas(size, size);
   const ctx = canvas.getContext("2d");

@@ -4,7 +4,7 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 module.exports = {
   packagerConfig: {
     asar: true,
-    name: 'Messenger',
+    name: 'UnofficaialMessenger',
     icon: 'assets/icon',
   },
   rebuildConfig: {},
@@ -21,7 +21,7 @@ module.exports = {
       name: '@electron-forge/maker-dmg',
       platforms: ['darwin'],
       config: {
-        name: 'Messenger'
+    name: `UnofficaialMessenger-${process.env.npm_package_version}`,
       }
     }
   ],
