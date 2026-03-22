@@ -112,7 +112,7 @@ function createWindow() {
     }
   });
 
-  win.loadURL("https://www.messenger.com");
+  win.loadURL("https://www.facebook.com/messages");
 
   // ✅ open popup windows in default browser
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -136,7 +136,31 @@ function createWindow() {
       shell.openExternal(url);
     }
   });
+win.webContents.on("did-finish-load", async ()=>{
 
+ await win.webContents.insertCSS(`
+
+  div[aria-label="Facebook"][role="navigation"]{
+    display:none !important;
+  }
+  div[role="banner"]{
+    display:none !important;
+  }
+
+ `);
+
+});
+
+win.webContents.insertCSS(`
+
+[aria-label="Facebook"][role="navigation"]{
+ display:none !important;
+}
+  div[role="banner"]{
+    display:none !important;
+  }
+
+`);
   // ✅ Right click context menu
   win.webContents.on("context-menu", (event, params) => {
     const menu = Menu.buildFromTemplate([
