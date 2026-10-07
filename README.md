@@ -51,6 +51,8 @@ npm run make
 
 The build output is written to `out/make`.
 
+GitHub Releases publish clearly named downloads for each supported system and processor architecture.
+
 ### Windows
 
 Produces a Squirrel installer and a portable ZIP:
@@ -61,7 +63,7 @@ npm run make:win
 
 ### macOS
 
-Produces a DMG and a ZIP:
+Produces a DMG and a ZIP for the current Mac processor architecture. GitHub Releases build and label both Apple silicon (ARM64) and Intel (x64) variants:
 
 ```bash
 npm run make:mac

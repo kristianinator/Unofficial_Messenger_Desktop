@@ -12,7 +12,8 @@
     "make": "electron-forge make",
     "make:mac": "electron-forge make --platform=darwin",
     "make:win": "electron-forge make --platform=win32",
-    "make:linux": "electron-forge make --platform=linux"
+    "make:linux": "electron-forge make --platform=linux",
+    "prepare:release-assets": "node scripts/prepare-release-assets.mjs"
   },
   "keywords": [
     "electron",

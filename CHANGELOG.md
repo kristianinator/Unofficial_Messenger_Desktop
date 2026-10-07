@@ -17,6 +17,7 @@ All notable changes to Unofficial Messenger Desktop are documented here.
   - macOS: DMG and ZIP for Intel and Apple silicon.
   - Linux: DEB, RPM, and ZIP.
 - Added GitHub Actions workflows that test and build all supported platforms and attach installers to versioned GitHub Releases.
+- Added clear, architecture-specific download names for the Windows installer and portable build, Apple silicon and Intel macOS builds, and Linux packages.
 - Corrected application icons and resource paths for packaged builds on every supported operating system.
 
 ### Security and reliability
