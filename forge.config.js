@@ -29,7 +29,7 @@ module.exports = {
       name: '@electron-forge/maker-dmg',
       platforms: ['darwin'],
       config: {
-        name: productName,
+        name: 'Unofficial Messenger',
         icon: path.join(__dirname, 'assets', 'icon.icns'),
       },
     },
@@ -38,6 +38,9 @@ module.exports = {
       platforms: ['linux'],
       config: {
         options: {
+          name: 'unofficial-messenger-desktop',
+          productName,
+          bin: productName,
           maintainer: 'Kristian Spasov',
           homepage: repositoryUrl,
           icon: path.join(__dirname, 'assets', 'icon.png'),
@@ -51,6 +54,9 @@ module.exports = {
       platforms: ['linux'],
       config: {
         options: {
+          name: 'unofficial-messenger-desktop',
+          productName,
+          bin: productName,
           homepage: repositoryUrl,
           icon: path.join(__dirname, 'assets', 'icon.png'),
           categories: ['Network'],

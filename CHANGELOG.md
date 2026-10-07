@@ -32,4 +32,5 @@ All notable changes to Unofficial Messenger Desktop are documented here.
 - Added automated tests for navigation security, image-copy context menus, semantic version comparison, and GitHub release checks.
 - Normalized the dependency lockfile for consistent installs across Windows and Linux CI runners.
 - Replaced the native canvas badge dependency with a portable JavaScript PNG generator, removing platform-specific compiler and graphics-library requirements.
+- Corrected Linux package binary mapping and macOS DMG volume naming for reliable distributable creation.
 - Added consistent development, validation, packaging, and release commands and refreshed the project documentation.
