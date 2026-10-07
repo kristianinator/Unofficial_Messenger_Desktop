@@ -2,17 +2,17 @@ name: Build installers
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  test:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,22 +26,31 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Windows installer (NSIS)
-        run: npm run ci:win
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Run checks
+        run: npm run check
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer
-          path: |
-            dist/*.exe
-            dist/*.msi
-            dist/*.zip
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x64
+            os: windows-latest
+            arch: x64
+          - name: macos-arm64
+            os: macos-latest
+            arch: arm64
+          - name: macos-x64
+            os: macos-15-intel
+            arch: x64
+          - name: linux-x64
+            os: ubuntu-latest
+            arch: x64
 
-  build-macos:
-    runs-on: macos-latest
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,17 +61,21 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes fakeroot rpm
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Build macOS DMG
-        run: npm run make:mac
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      - name: Upload artifacts
+      - name: Build distributables
+        run: npm run make -- --arch=${{ matrix.arch }}
+
+      - name: Upload distributables
         uses: actions/upload-artifact@v4
         with:
-          name: macos-installer
-          path: |
-            out/make/**/*.dmg
-            out/make/**/*.zip
+          name: ${{ matrix.name }}
+          path: out/make/**/*
+          if-no-files-found: error

@@ -14,7 +14,7 @@ Instead, report it privately to the maintainer with:
 The maintainer will respond as soon as possible and coordinate a fix and release.
 
 ## Scope
-This application is a desktop wrapper for https://www.messenger.com and does not provide its own backend.
+This application is a desktop wrapper for Facebook Messages and does not provide its own backend.
 Security issues may still exist, such as:
 - unexpected navigation / external link handling
 - preload / IPC exposure

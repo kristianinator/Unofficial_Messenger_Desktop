@@ -1,37 +1,38 @@
 {
   "name": "unofficial-messenger-desktop",
   "productName": "Unofficial Messenger Desktop",
-  "version": "1.0.0",
-  "description": "Unofficial desktop wrapper for messenger.com",
+  "version": "1.1.0",
+  "description": "Cross-platform unofficial desktop wrapper for Facebook Messages",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
+    "test": "node --test",
+    "check": "npm test && node --check src/main.js && node --check src/preload.js && node --check src/security.mjs && node --check src/context-menu.mjs && node --check src/update-checker.mjs",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "make:mac": "electron-forge make --platform=darwin",
-    "make:win": "electron-builder --win --x64",
-    "ci:win": "electron-forge package --platform=win32 --arch=x64 && electron-builder --win --x64"
+    "make:win": "electron-forge make --platform=win32",
+    "make:linux": "electron-forge make --platform=linux"
   },
-  "build": {
-    "appId": "kspasov.messenger",
-    "productName": "Unofficial Messenger Desktop",
-    "files": [
-      "**/*"
-    ],
-    "win": {
-      "target": "nsis",
-      "icon": "assets/icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": true,
-      "allowElevation": true,
-      "allowToChangeInstallationDirectory": true
-    }
-  },
-  "keywords": [],
-  "author": "kristianspasov",
+  "keywords": [
+    "electron",
+    "facebook",
+    "messenger",
+    "desktop"
+  ],
+  "author": "Kristian Spasov",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kristianinator/Unofficial_Messenger_Desktop.git"
+  },
+  "homepage": "https://github.com/kristianinator/Unofficial_Messenger_Desktop",
+  "bugs": {
+    "url": "https://github.com/kristianinator/Unofficial_Messenger_Desktop/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@electron-forge/cli": "^7.10.2",
     "@electron-forge/maker-deb": "^7.10.2",
@@ -44,12 +45,10 @@
     "@electron-forge/plugin-vite": "^7.10.2",
     "@electron/fuses": "^1.8.0",
     "electron": "39.2.7",
-    "electron-builder": "^26.4.0",
     "vite": "^5.4.21"
   },
   "dependencies": {
     "canvas": "^3.2.1",
-    "electron-context-menu": "^4.1.1",
     "electron-squirrel-startup": "^1.0.1"
   }
 }

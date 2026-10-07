@@ -2,66 +2,85 @@ name: Release installers
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches: [main]
+    paths:
+      - package.json
+      - package-lock.json
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build-and-release:
-    name: Create GitHub Release
+  prepare:
     runs-on: ubuntu-latest
-
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
     steps:
-      - name: Create GitHub Release
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read package version
+        id: version
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+  create-release:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare release notes
+        shell: bash
+        run: |
+          version="${{ needs.prepare.outputs.version }}"
+          awk -v header="## [$version]" '
+            index($0, header) == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+            END { if (!found) exit 2 }
+          ' CHANGELOG.md > release-notes.md
+          test -s release-notes.md
+
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Unofficial Messenger Desktop ${{ needs.prepare.outputs.tag }}
+          body_path: release-notes.md
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-windows:
-    name: Build Windows (NSIS)
-    runs-on: windows-latest
-    needs: build-and-release
+  build-and-upload:
+    needs: [prepare, create-release]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x64
+            os: windows-latest
+            arch: x64
+          - name: macos-arm64
+            os: macos-latest
+            arch: arm64
+          - name: macos-x64
+            os: macos-15-intel
+            arch: x64
+          - name: linux-x64
+            os: ubuntu-latest
+            arch: x64
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Windows installer (version from tag)
-        shell: bash
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          echo "Building version: $VERSION"
-          npm run ci:win -- --config.extraMetadata.version="$VERSION"
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
-      - name: Upload release assets (Windows)
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/*.exe
-            dist/*.blockmap
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-
-  build-macos:
-    name: Build macOS (DMG)
-    runs-on: macos-latest
-    needs: build-and-release
+    name: Release ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
@@ -73,23 +92,32 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes fakeroot rpm
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Build macOS DMG (version from tag)
-        shell: bash
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          echo "Building version: $VERSION"
-          npm run make:mac -- --config.extraMetadata.version="$VERSION"
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Run checks
+        run: npm run check
 
-      - name: Upload release assets (macOS)
+      - name: Build distributables
+        run: npm run make -- --arch=${{ matrix.arch }}
+
+      - name: Upload release files
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
           files: |
+            out/make/**/*.exe
+            out/make/**/*.nupkg
+            out/make/**/RELEASES
             out/make/**/*.dmg
             out/make/**/*.zip
+            out/make/**/*.deb
+            out/make/**/*.rpm
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

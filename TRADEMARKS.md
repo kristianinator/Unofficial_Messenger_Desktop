@@ -2,7 +2,7 @@
 
 “Messenger”, “Facebook”, and related names, logos, and brand marks are trademarks of **Meta Platforms, Inc.**
 
-This project is an independent, unofficial desktop wrapper for https://www.messenger.com and is:
+This project is an independent, unofficial desktop wrapper for Facebook Messages and is:
 
 - **Not affiliated with Meta Platforms, Inc.**
 - **Not endorsed or sponsored by Meta Platforms, Inc.**
