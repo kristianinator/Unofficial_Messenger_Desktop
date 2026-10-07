@@ -77,6 +77,11 @@ jobs:
       - name: Build distributables
         run: npm run make -- --arch=${{ matrix.arch }}
 
+      - name: Verify macOS architecture and code signature
+        if: runner.os == 'macOS'
+        shell: bash
+        run: bash scripts/verify-macos-package.sh "${{ matrix.arch }}"
+
       - name: Prepare clearly named distributables
         run: npm run prepare:release-assets -- --platform=${{ matrix.platform }} --arch=${{ matrix.arch }}
 

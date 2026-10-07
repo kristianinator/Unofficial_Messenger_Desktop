@@ -4,6 +4,12 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 
 const productName = 'Unofficial Messenger Desktop';
 const repositoryUrl = 'https://github.com/kristianinator/Unofficial_Messenger_Desktop';
+const macosAdHocSign = process.platform === 'darwin'
+  ? {
+      identity: '-',
+      identityValidation: false,
+    }
+  : undefined;
 
 module.exports = {
   packagerConfig: {
@@ -13,6 +19,7 @@ module.exports = {
     extraResource: [path.join(__dirname, 'assets')],
     appBundleId: 'com.kspasov.unofficial-messenger-desktop',
     appCategoryType: 'public.app-category.social-networking',
+    ...(macosAdHocSign ? { osxSign: macosAdHocSign } : {}),
   },
   rebuildConfig: {},
   makers: [
