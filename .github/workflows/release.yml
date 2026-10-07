@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - .github/workflows/release.yml
       - package.json
       - package-lock.json
   workflow_dispatch:
