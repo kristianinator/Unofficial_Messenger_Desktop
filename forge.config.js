@@ -1,5 +1,4 @@
 const path = require('path');
-const fs = require('fs/promises');
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 
@@ -8,9 +7,7 @@ const repositoryUrl = 'https://github.com/kristianinator/Unofficial_Messenger_De
 
 module.exports = {
   packagerConfig: {
-    asar: {
-      unpack: '**/node_modules/canvas/build/Release/**',
-    },
+    asar: true,
     name: productName,
     icon: path.join(__dirname, 'assets', 'icon'),
     extraResource: [path.join(__dirname, 'assets')],
@@ -18,15 +15,6 @@ module.exports = {
     appCategoryType: 'public.app-category.social-networking',
   },
   rebuildConfig: {},
-  hooks: {
-    packageAfterCopy: async (_forgeConfig, buildPath) => {
-      await fs.cp(
-        path.join(__dirname, 'node_modules', 'canvas'),
-        path.join(buildPath, 'node_modules', 'canvas'),
-        { recursive: true }
-      );
-    },
-  },
   makers: [
     {
       name: '@electron-forge/maker-squirrel',

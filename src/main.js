@@ -2,6 +2,7 @@ import {
   isSafeExternalUrl,
   isTrustedNavigationUrl
 } from "./security.mjs";
+import { createBadgePng } from "./badge-icon.mjs";
 import { createContextMenuTemplate } from "./context-menu.mjs";
 import { findAvailableUpdate } from "./update-checker.mjs";
 import squirrelStartup from "electron-squirrel-startup";
@@ -52,35 +53,7 @@ function setDockBadge(countStr) {
 function createBadgeIcon(count) {
   if (process.platform !== "win32") return null;
 
-  const { createCanvas } = require("canvas");
-  const size = 32; // ✅ overlay icon size must be small
-  const canvas = createCanvas(size, size);
-  const ctx = canvas.getContext("2d");
-
-  ctx.clearRect(0, 0, size, size);
-
-  // red circle
-  ctx.beginPath();
-  ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
-  ctx.fillStyle = "#E53935";
-  ctx.fill();
-
-  // text
-  const text = count > 99 ? "99+" : String(count);
-
-  ctx.fillStyle = "#FFFFFF";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-
-  // better font sizing
-  if (count > 99) ctx.font = "bold 12px Arial";
-  else if (count > 9) ctx.font = "bold 14px Arial";
-  else ctx.font = "bold 16px Arial";
-
-  // slight vertical offset because Windows renders slightly high
-  ctx.fillText(text, size / 2, size / 2 + 1);
-
-  return nativeImage.createFromBuffer(canvas.toBuffer("image/png"));
+  return nativeImage.createFromBuffer(createBadgePng(count));
 }
 
 // ----------------------------

@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron-forge start",
     "test": "node --test",
-    "check": "npm test && node --check src/main.js && node --check src/preload.js && node --check src/security.mjs && node --check src/context-menu.mjs && node --check src/update-checker.mjs",
+    "check": "npm test && node --check src/main.js && node --check src/preload.js && node --check src/security.mjs && node --check src/context-menu.mjs && node --check src/badge-icon.mjs && node --check src/update-checker.mjs",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "make:mac": "electron-forge make --platform=darwin",
@@ -48,7 +48,6 @@
     "vite": "^5.4.21"
   },
   "dependencies": {
-    "canvas": "^3.2.1",
     "electron-squirrel-startup": "^1.0.1"
   }
 }
