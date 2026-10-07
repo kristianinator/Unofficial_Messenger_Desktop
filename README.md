@@ -69,6 +69,8 @@ Produces a DMG and a ZIP for the current Mac processor architecture. GitHub Rele
 npm run make:mac
 ```
 
+macOS packages are ad-hoc signed and their architecture and signature integrity are checked in CI. Because the project does not currently use a paid Apple Developer ID, the first launch after downloading may need to be approved from **System Settings → Privacy & Security → Open Anyway**.
+
 ### Linux
 
 Produces DEB, RPM, and ZIP packages:

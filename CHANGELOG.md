@@ -2,6 +2,15 @@
 
 All notable changes to Unofficial Messenger Desktop are documented here.
 
+## [1.1.1] - 2026-10-07
+
+### macOS packaging
+
+- Added an ad-hoc code signature to macOS packages after Electron finishes modifying the application bundle, preventing valid downloads from being reported as structurally damaged.
+- Added native package validation on both Apple silicon and Intel macOS runners.
+- Verified the executable architecture and strict code-signature integrity in the packaged app, the extracted ZIP, and the mounted DMG before publication.
+- Developer ID notarization is not included, so macOS may still require one-time approval from **System Settings → Privacy & Security → Open Anyway** after download.
+
 ## [1.1.0] - 2026-10-07
 
 ### Highlights
