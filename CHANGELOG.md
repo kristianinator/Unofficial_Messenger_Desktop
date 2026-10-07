@@ -30,4 +30,5 @@ All notable changes to Unofficial Messenger Desktop are documented here.
 ### Maintenance
 
 - Added automated tests for navigation security, image-copy context menus, semantic version comparison, and GitHub release checks.
+- Normalized the dependency lockfile for consistent installs across Windows and Linux CI runners.
 - Added consistent development, validation, packaging, and release commands and refreshed the project documentation.
