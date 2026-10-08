@@ -1,7 +1,7 @@
 {
   "name": "unofficial-messenger-desktop",
   "productName": "Unofficial Messenger Desktop",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Cross-platform unofficial desktop wrapper for Facebook Messages",
   "main": ".vite/build/main.js",
   "scripts": {

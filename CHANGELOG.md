@@ -2,6 +2,14 @@
 
 All notable changes to Unofficial Messenger Desktop are documented here.
 
+## [1.1.2] - 2026-10-08
+
+### macOS launch fix
+
+- Fixed the Apple silicon and Intel packages being rejected at launch because the ad-hoc application signature and the bundled Electron framework had incompatible Team IDs under Hardened Runtime.
+- Disabled Hardened Runtime for unsigned ad-hoc packages while retaining strict signature validation for the app bundle, ZIP, and DMG.
+- Added a real application launch smoke test on both Apple silicon and Intel macOS runners so runtime loader failures are caught before release.
+
 ## [1.1.1] - 2026-10-07
 
 ### macOS packaging
