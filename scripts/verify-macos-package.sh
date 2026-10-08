@@ -18,8 +18,13 @@ fi
 temporary_directory="$(mktemp -d)"
 mount_directory="$temporary_directory/dmg"
 mounted_dmg=""
+smoke_test_pid=""
 
 cleanup() {
+  if [[ -n "$smoke_test_pid" ]]; then
+    kill "$smoke_test_pid" 2>/dev/null || true
+    wait "$smoke_test_pid" 2>/dev/null || true
+  fi
   if [[ -n "$mounted_dmg" ]]; then
     hdiutil detach "$mount_directory" -quiet || true
   fi
@@ -72,6 +77,35 @@ verify_app() {
     echo "Expected an ad-hoc signature on $source_label" >&2
     exit 1
   fi
+
+  if grep -Eq '^CodeDirectory .*flags=.*runtime' <<< "$signature_details"; then
+    echo "Ad-hoc package unexpectedly enables Hardened Runtime on $source_label" >&2
+    exit 1
+  fi
+}
+
+smoke_test_app() {
+  local app_path="$1"
+  local executable="$app_path/Contents/MacOS/$product_name"
+  local log_file="$temporary_directory/launch.log"
+
+  echo "Launching packaged app for smoke test: $app_path"
+  ELECTRON_DISABLE_SECURITY_WARNINGS=true "$executable" --disable-gpu >"$log_file" 2>&1 &
+  smoke_test_pid=$!
+  sleep 8
+
+  if ! kill -0 "$smoke_test_pid" 2>/dev/null; then
+    wait "$smoke_test_pid" 2>/dev/null || true
+    smoke_test_pid=""
+    cat "$log_file" >&2
+    echo "macOS app exited during the launch smoke test" >&2
+    exit 1
+  fi
+
+  kill "$smoke_test_pid" 2>/dev/null || true
+  wait "$smoke_test_pid" 2>/dev/null || true
+  smoke_test_pid=""
+  echo "Launch smoke test passed."
 }
 
 packaged_app="out/$product_name-darwin-$expected_arch/$product_name.app"
@@ -80,6 +114,7 @@ if [[ ! -d "$packaged_app" ]]; then
   exit 1
 fi
 verify_app "$packaged_app" "packaged app"
+smoke_test_app "$packaged_app"
 
 zip_file="$(find_single 'macOS ZIP' out/make -type f -name '*.zip')"
 zip_directory="$temporary_directory/zip"

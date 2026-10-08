@@ -8,6 +8,10 @@ const macosAdHocSign = process.platform === 'darwin'
   ? {
       identity: '-',
       identityValidation: false,
+      preAutoEntitlements: false,
+      optionsForFile: () => ({
+        hardenedRuntime: false,
+      }),
     }
   : undefined;
 
