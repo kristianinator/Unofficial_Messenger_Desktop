@@ -2,6 +2,20 @@
 
 All notable changes to Unofficial Messenger Desktop are documented here.
 
+## [Unreleased]
+
+### Automatic updates
+
+- Added background download and **Restart and install** updates for installed Windows builds through Electron's Squirrel updater and the public GitHub update service.
+- Added the Squirrel `RELEASES` manifest and full NuGet update package to every Windows GitHub Release, with hash and size validation before upload.
+- Kept portable Windows, ad-hoc macOS, and Linux builds on the safe download-notification flow when no supported system installer or trusted signature is available.
+
+### macOS installation
+
+- Documented the quarantine-removal fallback for official GitHub packages when macOS reports an ad-hoc build as damaged without offering **Open Anyway**.
+- Added a production signing path that imports a Developer ID certificate, enables Hardened Runtime, notarizes the app, and verifies it with Gatekeeper before publication.
+- Enabled automatic macOS updates only when the running app has a real Team ID; ad-hoc packages stay on the download-notification flow so Squirrel.Mac cannot reject or damage an update.
+
 ## [1.1.2] - 2026-10-08
 
 ### macOS launch fix

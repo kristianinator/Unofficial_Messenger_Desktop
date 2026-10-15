@@ -4,7 +4,24 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 
 const productName = 'Unofficial Messenger Desktop';
 const repositoryUrl = 'https://github.com/kristianinator/Unofficial_Messenger_Desktop';
-const macosAdHocSign = process.platform === 'darwin'
+const isMacosBuild = process.platform === 'darwin';
+const macosSigningIdentity = isMacosBuild
+  ? process.env.MACOS_SIGN_IDENTITY?.trim()
+  : undefined;
+const macosNotarizationValues = [
+  process.env.APPLE_ID,
+  process.env.APPLE_ID_PASSWORD,
+  process.env.APPLE_TEAM_ID,
+];
+const hasCompleteMacosNotarization = macosNotarizationValues.every(Boolean);
+
+if (macosSigningIdentity && !hasCompleteMacosNotarization) {
+  throw new Error(
+    'APPLE_ID, APPLE_ID_PASSWORD, and APPLE_TEAM_ID are required with MACOS_SIGN_IDENTITY',
+  );
+}
+
+const macosAdHocSign = isMacosBuild
   ? {
       identity: '-',
       identityValidation: false,
@@ -12,6 +29,16 @@ const macosAdHocSign = process.platform === 'darwin'
       optionsForFile: () => ({
         hardenedRuntime: false,
       }),
+    }
+  : undefined;
+const macosSign = macosSigningIdentity
+  ? { identity: macosSigningIdentity }
+  : macosAdHocSign;
+const macosNotarize = macosSigningIdentity
+  ? {
+      appleId: process.env.APPLE_ID,
+      appleIdPassword: process.env.APPLE_ID_PASSWORD,
+      teamId: process.env.APPLE_TEAM_ID,
     }
   : undefined;
 
@@ -23,7 +50,8 @@ module.exports = {
     extraResource: [path.join(__dirname, 'assets')],
     appBundleId: 'com.kspasov.unofficial-messenger-desktop',
     appCategoryType: 'public.app-category.social-networking',
-    ...(macosAdHocSign ? { osxSign: macosAdHocSign } : {}),
+    ...(macosSign ? { osxSign: macosSign } : {}),
+    ...(macosNotarize ? { osxNotarize: macosNotarize } : {}),
   },
   rebuildConfig: {},
   makers: [

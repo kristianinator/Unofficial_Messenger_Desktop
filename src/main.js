@@ -4,8 +4,17 @@ import {
 } from "./security.mjs";
 import { createBadgePng } from "./badge-icon.mjs";
 import { createContextMenuTemplate } from "./context-menu.mjs";
+import {
+  isAutomaticUpdateEligible,
+  UPDATE_REPOSITORY
+} from "./automatic-updates.mjs";
 import { findAvailableUpdate } from "./update-checker.mjs";
 import squirrelStartup from "electron-squirrel-startup";
+import {
+  makeUserNotifier,
+  updateElectronApp,
+  UpdateSourceType
+} from "update-electron-app";
 
 const {
   app,
@@ -33,6 +42,8 @@ let updateCheckInFlight = null;
 let updateCheckTimeout = null;
 let updateCheckInterval = null;
 let lastPromptedUpdate = null;
+let automaticUpdateTimeout = null;
+let automaticUpdateController = null;
 
 // Enable platform notifications
 app.commandLine.appendSwitch("enable-features", "PlatformNotifications");
@@ -163,6 +174,46 @@ function stopUpdateChecks() {
 
   updateCheckTimeout = null;
   updateCheckInterval = null;
+}
+
+function scheduleAutomaticUpdates() {
+  if (!isAutomaticUpdateEligible({
+    platform: process.platform,
+    isPackaged: app.isPackaged,
+    execPath: process.execPath
+  })) {
+    return false;
+  }
+
+  automaticUpdateTimeout = setTimeout(() => {
+    automaticUpdateTimeout = null;
+    automaticUpdateController = updateElectronApp({
+      updateSource: {
+        type: UpdateSourceType.ElectronPublicUpdateService,
+        repo: UPDATE_REPOSITORY
+      },
+      updateInterval: "6 hours",
+      logger: console,
+      notifyUser: true,
+      onNotifyUser: makeUserNotifier({
+        title: "Update ready",
+        detail:
+          "The new version has been downloaded. Restart the application to install it.",
+        restartButtonText: "Restart and install",
+        laterButtonText: "Later"
+      })
+    });
+  }, UPDATE_CHECK_DELAY_MS);
+
+  return true;
+}
+
+function stopAutomaticUpdates() {
+  if (automaticUpdateTimeout) clearTimeout(automaticUpdateTimeout);
+  automaticUpdateTimeout = null;
+
+  automaticUpdateController?.stopUpdates();
+  automaticUpdateController = null;
 }
 
 function handleNavigation(event, url) {
@@ -421,14 +472,17 @@ app.whenReady().then(() => {
   }
 
   createWindow();
-  scheduleUpdateChecks();
+  if (!scheduleAutomaticUpdates()) scheduleUpdateChecks();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
-app.on("before-quit", stopUpdateChecks);
+app.on("before-quit", () => {
+  stopAutomaticUpdates();
+  stopUpdateChecks();
+});
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();

@@ -1,4 +1,6 @@
-import { copyFile, mkdir, readFile, readdir, rm } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { copyFile, mkdir, readFile, readdir, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -22,6 +24,8 @@ export function getReleaseAssetPlan(platform, arch, version) {
     return [
       { extension: '.exe', filename: `${prefix}-Windows-x64-Installer.exe` },
       { extension: '.zip', filename: `${prefix}-Windows-x64-Portable.zip` },
+      { extension: '.nupkg', preserveFilename: true },
+      { sourceFilename: 'RELEASES', filename: 'RELEASES' },
     ];
   }
 
@@ -56,6 +60,48 @@ async function listFiles(directory) {
   return files;
 }
 
+async function hashFile(file, algorithm) {
+  const hash = createHash(algorithm);
+
+  for await (const chunk of createReadStream(file)) hash.update(chunk);
+  return hash.digest('hex').toUpperCase();
+}
+
+export async function verifySquirrelUpdateAssets(preparedFiles) {
+  const releasesFile = preparedFiles.find(
+    (file) => path.basename(file) === 'RELEASES',
+  );
+  const packageFile = preparedFiles.find(
+    (file) => path.extname(file).toLowerCase() === '.nupkg',
+  );
+
+  if (!releasesFile || !packageFile) {
+    throw new Error('Windows auto-update files RELEASES and .nupkg are required');
+  }
+
+  const releaseLines = (await readFile(releasesFile, 'utf8'))
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const packageName = path.basename(packageFile);
+  const releaseLine = releaseLines.find((line) =>
+    line.split(/\s+/)[1] === packageName);
+
+  if (!releaseLine) {
+    throw new Error(`RELEASES does not reference ${packageName}`);
+  }
+
+  const [expectedHash, , expectedSize] = releaseLine.split(/\s+/);
+  const [{ size }, actualHash] = await Promise.all([
+    stat(packageFile),
+    hashFile(packageFile, 'sha1'),
+  ]);
+
+  if (expectedHash.toUpperCase() !== actualHash || Number(expectedSize) !== size) {
+    throw new Error(`RELEASES metadata does not match ${packageName}`);
+  }
+}
+
 export async function prepareReleaseAssets({ platform, arch, version, sourceDir, targetDir }) {
   const plan = getReleaseAssetPlan(platform, arch, version);
   const sourceFiles = await listFiles(sourceDir);
@@ -66,7 +112,11 @@ export async function prepareReleaseAssets({ platform, arch, version, sourceDir,
   const preparedFiles = [];
 
   for (const asset of plan) {
-    const matches = sourceFiles.filter((file) => {
+    let matches = sourceFiles.filter((file) => {
+      if (asset.sourceFilename) {
+        return path.basename(file) === asset.sourceFilename;
+      }
+
       if (path.extname(file).toLowerCase() !== asset.extension) {
         return false;
       }
@@ -75,15 +125,29 @@ export async function prepareReleaseAssets({ platform, arch, version, sourceDir,
         || path.basename(file).toLowerCase().endsWith('setup.exe');
     });
 
+    if (matches.length > 1 && ['.zip', '.nupkg'].includes(asset.extension)) {
+      const versionedMatches = matches.filter((file) =>
+        path.basename(file).includes(version));
+
+      if (versionedMatches.length === 1) matches = versionedMatches;
+    }
+
     if (matches.length !== 1) {
       throw new Error(
         `Expected exactly one ${asset.extension} file for ${platform}-${arch}, found ${matches.length}`,
       );
     }
 
-    const destination = path.join(targetDir, asset.filename);
+    const destination = path.join(
+      targetDir,
+      asset.preserveFilename ? path.basename(matches[0]) : asset.filename,
+    );
     await copyFile(matches[0], destination);
     preparedFiles.push(destination);
+  }
+
+  if (platform === 'win32') {
+    await verifySquirrelUpdateAssets(preparedFiles);
   }
 
   return preparedFiles;
