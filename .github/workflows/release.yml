@@ -116,6 +116,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Import macOS signing certificate
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          if [[ -z "$MACOS_CERTIFICATE" ]]; then
+            echo "No Developer ID certificate configured; using the ad-hoc test signature."
+            exit 0
+          fi
+          bash scripts/import-macos-certificate.sh
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -136,10 +149,17 @@ jobs:
 
       - name: Build distributables
         run: npm run make -- --arch=${{ matrix.arch }}
+        env:
+          MACOS_SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       - name: Verify macOS architecture and code signature
         if: runner.os == 'macOS'
         shell: bash
+        env:
+          MACOS_SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
         run: bash scripts/verify-macos-package.sh "${{ matrix.arch }}"
 
       - name: Prepare clearly named release files

@@ -71,6 +71,24 @@ npm run make:mac
 
 macOS packages are ad-hoc signed, and CI checks their architecture and signature integrity and starts the packaged application on both Apple silicon and Intel runners. Because the project does not currently use a paid Apple Developer ID, the first launch after downloading may need to be approved from **System Settings → Privacy & Security → Open Anyway**.
 
+If macOS reports that the official GitHub download is damaged and does not show **Open Anyway**, move the app to `/Applications`, then remove only its download quarantine marker and open it:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Unofficial Messenger Desktop.app"
+open "/Applications/Unofficial Messenger Desktop.app"
+```
+
+Only use this command with a package downloaded from this repository's official GitHub Releases page. Fully unattended macOS installation and updates require an Apple Developer ID signature and notarization.
+
+The GitHub workflows automatically switch from the ad-hoc fallback to Developer ID signing and Apple notarization when these repository secrets are configured:
+
+- `MACOS_CERTIFICATE`: Base64-encoded Developer ID Application `.p12` file
+- `MACOS_CERTIFICATE_PASSWORD`: Password for the `.p12` file
+- `MACOS_SIGN_IDENTITY`: Full Developer ID Application identity
+- `APPLE_ID`, `APPLE_ID_PASSWORD`, and `APPLE_TEAM_ID`: notarization credentials
+
+Signed builds are verified with Hardened Runtime and `spctl` before publication. The workflow refuses a partially configured signing setup.
+
 ### Linux
 
 Produces DEB, RPM, and ZIP packages:
@@ -83,9 +101,9 @@ Linux packaging requires `fakeroot`, `dpkg`, and `rpm`.
 
 When a new package version reaches `main`, GitHub Actions creates the matching `v*.*.*` tag and GitHub Release, then builds and attaches all supported installers.
 
-Packaged builds check GitHub Releases shortly after startup and then every six hours. When a newer stable version is available, the app offers to open the official release downloads page. Update failures are silent so an offline GitHub connection never blocks Messenger.
+The installed Windows build checks for stable updates shortly after startup and every six hours. A new version is downloaded in the background and the app then offers **Restart and install**. Releases include the Squirrel `RELEASES` manifest and full update package required for automatic installation.
 
-Linux users should install the new DEB/RPM package through their distribution. Windows and macOS currently use the same download notification flow; unattended installation can be added later after release signing and platform-specific update feeds are configured.
+Windows portable, ad-hoc macOS, and Linux builds continue to show a download notification instead of modifying files outside a supported installer. Linux users should update through their distribution package manager. A Developer ID signed and notarized macOS build automatically uses the same background download and restart-to-install flow; the application verifies that it has a real Apple Team ID before enabling it.
 
 ## Notes
 - This is a web wrapper: all message content is loaded directly from Facebook

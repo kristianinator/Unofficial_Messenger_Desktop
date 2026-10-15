@@ -73,14 +73,29 @@ verify_app() {
   signature_details="$(codesign --display --verbose=4 "$app_path" 2>&1)"
   printf '%s\n' "$signature_details"
 
-  if ! grep -q '^Signature=adhoc$' <<< "$signature_details"; then
-    echo "Expected an ad-hoc signature on $source_label" >&2
-    exit 1
-  fi
-
-  if grep -Eq '^CodeDirectory .*flags=.*runtime' <<< "$signature_details"; then
-    echo "Ad-hoc package unexpectedly enables Hardened Runtime on $source_label" >&2
-    exit 1
+  if [[ -n "${MACOS_SIGN_IDENTITY:-}" ]]; then
+    if grep -q '^Signature=adhoc$' <<< "$signature_details"; then
+      echo "Expected a Developer ID signature on $source_label" >&2
+      exit 1
+    fi
+    if ! grep -Eq '^TeamIdentifier=[A-Z0-9]+$' <<< "$signature_details"; then
+      echo "Developer ID TeamIdentifier is missing on $source_label" >&2
+      exit 1
+    fi
+    if ! grep -Eq '^CodeDirectory .*flags=.*runtime' <<< "$signature_details"; then
+      echo "Hardened Runtime is missing on signed $source_label" >&2
+      exit 1
+    fi
+    spctl --assess --type execute --verbose=4 "$app_path"
+  else
+    if ! grep -q '^Signature=adhoc$' <<< "$signature_details"; then
+      echo "Expected an ad-hoc signature on $source_label" >&2
+      exit 1
+    fi
+    if grep -Eq '^CodeDirectory .*flags=.*runtime' <<< "$signature_details"; then
+      echo "Ad-hoc package unexpectedly enables Hardened Runtime on $source_label" >&2
+      exit 1
+    fi
   fi
 }
 
