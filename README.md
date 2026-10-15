@@ -13,6 +13,7 @@ It does **not** use private Meta APIs, bypass authentication, or modify Meta ser
 - Runs Facebook Messages in a focused desktop window
 - Opens external links in your default browser
 - Context menu (copy/paste/select all)
+- Native application menu with editing, view, update, support, and About actions
 - Persistent session (`persist:messenger`)
 - Installers for Windows, macOS, and Linux
 - Automatic checks for the latest stable GitHub Release
