@@ -2,6 +2,14 @@
 
 All notable changes to Unofficial Messenger Desktop are documented here.
 
+## [1.2.1] - 2026-10-15
+
+### Application menu
+
+- Added the standard File, Edit, View, Window, and Help menu bar on Windows and Linux.
+- Added the native macOS application menu layout with About, update, window, and application commands in their conventional locations.
+- Added manual update status, release notes, repository, issue reporting, platform details, and project disclaimer actions.
+
 ## [1.2.0] - 2026-10-15
 
 ### Automatic updates

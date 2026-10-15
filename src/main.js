@@ -4,6 +4,7 @@ import {
 } from "./security.mjs";
 import { createBadgePng } from "./badge-icon.mjs";
 import { createContextMenuTemplate } from "./context-menu.mjs";
+import { createApplicationMenuTemplate } from "./application-menu.mjs";
 import {
   isAutomaticUpdateEligible,
   UPDATE_REPOSITORY
@@ -31,6 +32,9 @@ const path = require("path");
 const UPDATE_CHECK_DELAY_MS = 15 * 1000;
 const UPDATE_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 const UPDATE_CHECK_TIMEOUT_MS = 10 * 1000;
+const PRODUCT_NAME = "Unofficial Messenger Desktop";
+const PROJECT_URL =
+  "https://github.com/kristianinator/Unofficial_Messenger_Desktop";
 
 if (squirrelStartup) {
   app.quit();
@@ -104,7 +108,14 @@ function openExternalSafely(url) {
   });
 }
 
-async function checkForUpdates() {
+function showAppMessageBox(options) {
+  const parentWindow = win && !win.isDestroyed() ? win : null;
+  return parentWindow
+    ? dialog.showMessageBox(parentWindow, options)
+    : dialog.showMessageBox(options);
+}
+
+async function checkForUpdates({ notifyIfCurrent = false } = {}) {
   if (updateCheckInFlight) return updateCheckInFlight;
 
   updateCheckInFlight = (async () => {
@@ -120,7 +131,21 @@ async function checkForUpdates() {
         signal: controller.signal
       });
 
-      if (!release || release.version === lastPromptedUpdate) return;
+      if (!release) {
+        if (notifyIfCurrent) {
+          await showAppMessageBox({
+            type: "info",
+            buttons: ["OK"],
+            defaultId: 0,
+            title: "No updates available",
+            message: `${PRODUCT_NAME} is up to date`,
+            detail: `You are using the latest version (${app.getVersion()}).`,
+          });
+        }
+        return;
+      }
+
+      if (release.version === lastPromptedUpdate && !notifyIfCurrent) return;
 
       lastPromptedUpdate = release.version;
 
@@ -134,15 +159,22 @@ async function checkForUpdates() {
         message: `Unofficial Messenger Desktop ${release.version} is available`,
         detail: `You are using version ${app.getVersion()}. Open the GitHub release page to download the update for your operating system.`
       };
-      const parentWindow = win && !win.isDestroyed() ? win : null;
-      const result = parentWindow
-        ? await dialog.showMessageBox(parentWindow, options)
-        : await dialog.showMessageBox(options);
+      const result = await showAppMessageBox(options);
 
       if (result.response === 0) openExternalSafely(release.url);
     } catch (error) {
       if (error?.name !== "AbortError") {
         console.warn("Update check failed:", error);
+      }
+      if (notifyIfCurrent) {
+        await showAppMessageBox({
+          type: "warning",
+          buttons: ["OK"],
+          defaultId: 0,
+          title: "Update check failed",
+          message: "Could not check for updates",
+          detail: "Check your internet connection and try again.",
+        });
       }
     } finally {
       clearTimeout(timeout);
@@ -154,6 +186,58 @@ async function checkForUpdates() {
   } finally {
     updateCheckInFlight = null;
   }
+}
+
+function getPlatformDescription() {
+  const platformNames = {
+    darwin: "macOS",
+    linux: "Linux",
+    win32: "Windows",
+  };
+  const architectureNames = {
+    arm64: "Apple Silicon / ARM64",
+    x64: "Intel / x64",
+  };
+
+  return `${platformNames[process.platform] ?? process.platform} · ${
+    architectureNames[process.arch] ?? process.arch
+  }`;
+}
+
+async function showAboutDialog() {
+  await showAppMessageBox({
+    type: "info",
+    buttons: ["OK"],
+    defaultId: 0,
+    title: `About ${PRODUCT_NAME}`,
+    message: PRODUCT_NAME,
+    detail: [
+      `Version ${app.getVersion()}`,
+      getPlatformDescription(),
+      "",
+      "An unofficial desktop wrapper for Facebook Messenger.",
+      "This project is not affiliated with or endorsed by Meta.",
+    ].join("\n"),
+  });
+}
+
+function installApplicationMenu() {
+  const template = createApplicationMenuTemplate({
+    platform: process.platform,
+    productName: PRODUCT_NAME,
+    checkForUpdates: () => {
+      void checkForUpdates({ notifyIfCurrent: true });
+    },
+    openReleaseNotes: () =>
+      openExternalSafely(`${PROJECT_URL}/blob/main/CHANGELOG.md`),
+    openRepository: () => openExternalSafely(PROJECT_URL),
+    reportProblem: () => openExternalSafely(`${PROJECT_URL}/issues/new`),
+    showAbout: () => {
+      void showAboutDialog();
+    },
+  });
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
 function scheduleUpdateChecks() {
@@ -391,7 +475,10 @@ function createWindow() {
     }
   });
 
-  win.setMenuBarVisibility(false);
+  if (process.platform !== "darwin") {
+    win.setAutoHideMenuBar(false);
+    win.setMenuBarVisibility(true);
+  }
 
   win.once("ready-to-show", () => {
     win.show();
@@ -471,6 +558,7 @@ app.whenReady().then(() => {
     app.setAppUserModelId("kspasov.messenger");
   }
 
+  installApplicationMenu();
   createWindow();
   if (!scheduleAutomaticUpdates()) scheduleUpdateChecks();
 

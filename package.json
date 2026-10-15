@@ -1,13 +1,13 @@
 {
   "name": "unofficial-messenger-desktop",
   "productName": "Unofficial Messenger Desktop",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Cross-platform unofficial desktop wrapper for Facebook Messages",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
     "test": "node --test",
-    "check": "npm test && node --check src/main.js && node --check src/preload.js && node --check src/security.mjs && node --check src/context-menu.mjs && node --check src/badge-icon.mjs && node --check src/update-checker.mjs && node --check src/automatic-updates.mjs",
+    "check": "npm test && node --check src/main.js && node --check src/preload.js && node --check src/security.mjs && node --check src/context-menu.mjs && node --check src/application-menu.mjs && node --check src/badge-icon.mjs && node --check src/update-checker.mjs && node --check src/automatic-updates.mjs",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "make:mac": "electron-forge make --platform=darwin",
