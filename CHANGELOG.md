@@ -2,7 +2,7 @@
 
 All notable changes to Unofficial Messenger Desktop are documented here.
 
-## [Unreleased]
+## [1.2.0] - 2026-10-15
 
 ### Automatic updates
 
